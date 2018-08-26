@@ -64,7 +64,7 @@ class TailwindCompletions(sublime_plugin.EventListener):
                     styles = re.sub(':%s \{(.*?)\}' % k, r'\1', styles)
                 items = items + [('%s \t%s' % (class_name, styles), class_name)]
             elif self.screens.get(class_name) is not None:
-                items = items + [('%s: \t@media (max-width: %s)' % (class_name, self.screens.get(class_name)), class_name + ':')]
+                items = items + [('%s: \t@media (min-width: %s)' % (class_name, self.screens.get(class_name)), class_name + ':')]
             else:
                 items = items + [('%s:' % class_name, class_name + ':')]
         return items
