@@ -5,9 +5,22 @@
   "scripts": {
     "build": "webpack"
   },
-  "keywords": [],
+  "keywords": [
+    "tailwind",
+    "tailwindcss",
+    "sublime",
+    "autocomplete"
+  ],
   "author": "Brad Cornes <bradlc41@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bradlc/sublime-tailwindcss.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bradlc/sublime-tailwindcss/issues"
+  },
+  "homepage": "https://github.com/bradlc/sublime-tailwindcss#readme",
   "devDependencies": {
     "tailwind-class-names": "0.6.0",
     "webpack": "^4.8.1",
