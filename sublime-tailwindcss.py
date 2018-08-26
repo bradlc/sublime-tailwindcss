@@ -6,21 +6,17 @@ import json
 import re
 
 class TailwindCompletions(sublime_plugin.EventListener):
-    activated = False
+    instances = {}
 
-    def get_completions(self):
-        folders = sublime.active_window().folders()
-
-        if len(folders) == 0:
-            self.activated = False
-            return
+    def get_completions(self, folder):
+        self.instances[folder] = {}
 
         tw = self.find_file(
-            folders[0],
+            folder,
             ['tailwind.js', 'tailwind.config.js', 'tailwind-config.js', '.tailwindrc.js'],
             exclude_dirs = ['node_modules']
         )
-        tw_plugin = self.find_node_module(folders[0], 'tailwindcss')
+        tw_plugin = self.find_node_module(folder, 'tailwindcss')
 
         if tw is not None and tw_plugin is not None:
             try:
@@ -30,17 +26,15 @@ class TailwindCompletions(sublime_plugin.EventListener):
                 output = process.communicate()[0]
                 path = output.decode('utf-8').splitlines()[0]
                 class_names = json.loads(path)
-                self.separator = class_names.get('separator')
-                self.class_names = class_names.get('classNames')
-                self.screens = class_names.get('screens')
-                self.items = self.get_items_from_class_names(self.class_names)
-                return self.items
-            except FileNotFoundError:
-                self.activated = False
-            except IndexError:
-                return []
 
-    def get_items_from_class_names(self, class_names, keys = []):
+                self.instances[folder]['separator'] = class_names.get('separator')
+                self.instances[folder]['class_names'] = class_names.get('classNames')
+                self.instances[folder]['screens'] = class_names.get('screens')
+                self.instances[folder]['items'] = self.get_items_from_class_names(class_names.get('classNames'), class_names.get('screens'))
+            except (FileNotFoundError, IndexError):
+                pass
+
+    def get_items_from_class_names(self, class_names, screens, keys = []):
         if class_names is None:
             return []
 
@@ -51,8 +45,8 @@ class TailwindCompletions(sublime_plugin.EventListener):
                 for k in keys:
                     styles = re.sub(':%s \{(.*?)\}' % k, r'\1', styles)
                 items = items + [('%s \t%s' % (class_name, styles), class_name)]
-            elif self.screens.get(class_name) is not None:
-                items = items + [('%s: \t@media (min-width: %s)' % (class_name, self.screens.get(class_name)), class_name + ':')]
+            elif screens.get(class_name) is not None:
+                items = items + [('%s: \t@media (min-width: %s)' % (class_name, screens.get(class_name)), class_name + ':')]
             else:
                 items = items + [('%s:' % class_name, class_name + ':')]
         return items
@@ -97,12 +91,37 @@ class TailwindCompletions(sublime_plugin.EventListener):
     #         view.run_command('auto_complete', [])
 
     def on_activated_async(self, view):
-        if self.activated is False:
-            self.activated = True
-            self.get_completions()
+        # print(view.file_name())
+        for folder in view.window().folders():
+            if view.file_name() is not None and view.file_name().startswith(os.path.abspath(folder) + os.sep):
+                if folder in self.instances:
+                    print('already got for this folder')
+                    break
+                else:
+                    print('getting')
+                    self.get_completions(folder)
+                    break
+        # for key,val in self.instances.items():
+        #     if view.file_name().startswith(os.path.abspath(key) + os.sep):
+        #         break
+        #     else:
+        #         self.get_completions
+        # if self.activated is False:
+        #     self.activated = True
+        #     self.get_completions()
 
     def on_query_completions(self, view, prefix, locations):
-        if not hasattr(self, 'items'):
+        items = None
+        class_names = None
+        screens = None
+
+        for folder in self.instances:
+            if view.file_name() is not None and view.file_name().startswith(os.path.abspath(folder) + os.sep):
+                items = self.instances[folder]['items']
+                class_names = self.instances[folder]['class_names']
+                screens = self.instances[folder]['screens']
+                break
+        if items is None:
             return []
 
         isCss = view.match_selector(locations[0], 'source.css meta.property-list.css')
@@ -143,10 +162,10 @@ class TailwindCompletions(sublime_plugin.EventListener):
         keys = re.findall('(.*?):', string)
 
         if keys is None:
-            return self.items
+            return items
         else:
             # return [("%s" % class_name, class_name) for class_name in list(self.safeget(self.class_names, keys))]
-            return self.get_items_from_class_names(self.safeget(self.class_names, keys), keys)
+            return self.get_items_from_class_names(self.safeget(class_names, keys), screens, keys)
 
     def safeget(self, dct, keys):
         for key in keys:
