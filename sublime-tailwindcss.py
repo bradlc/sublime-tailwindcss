@@ -55,9 +55,6 @@ class TailwindCompletions(sublime_plugin.EventListener):
     # you type a colon within a CSS rule. e.g. "color:_" -> "color:_;"
     # we override this if we are inside an @apply
     def on_text_command(self, view, command_name, args):
-        # if command_name == 'insert' and args.get('characters') == ':':
-        #     view.run_command('hide_auto_complete', [])
-        #     return None
         cursor = view.sel()[0].begin()
         isCss = view.match_selector(cursor, 'source.css meta.property-list.css')
 
@@ -65,12 +62,6 @@ class TailwindCompletions(sublime_plugin.EventListener):
             return None
 
         if command_name == 'insert_snippet' and args.get('contents') == ':$0;':
-            # print('wat')
-            # word_separators = view.settings().get("word_separators")
-            # view.settings().set("word_separators", "")
-            # sublime.set_timeout(lambda: view.settings().set("word_separators", word_separators), 0)
-
-            # view.settings().set( "auto_complete_triggers",  )
             LIMIT = 250
             start = max(0, cursor - LIMIT)
             line = view.substr(sublime.Region(start, cursor))
@@ -83,15 +74,7 @@ class TailwindCompletions(sublime_plugin.EventListener):
         else:
             return None
 
-    # def on_post_text_command(self, view, command_name, args):
-    #     print(command_name)
-    #     if command_name == 'insert' and args.get('characters') == ':':
-    #         # view.run_command('hide_auto_complete', [])
-
-    #         view.run_command('auto_complete', [])
-
     def on_activated_async(self, view):
-        # print(view.file_name())
         for folder in view.window().folders():
             if view.file_name() is not None and view.file_name().startswith(os.path.abspath(folder) + os.sep):
                 if folder in self.instances:
@@ -101,14 +84,6 @@ class TailwindCompletions(sublime_plugin.EventListener):
                     print('getting')
                     self.get_completions(folder)
                     break
-        # for key,val in self.instances.items():
-        #     if view.file_name().startswith(os.path.abspath(key) + os.sep):
-        #         break
-        #     else:
-        #         self.get_completions
-        # if self.activated is False:
-        #     self.activated = True
-        #     self.get_completions()
 
     def on_query_completions(self, view, prefix, locations):
         items = None
@@ -142,18 +117,6 @@ class TailwindCompletions(sublime_plugin.EventListener):
 
         if match is None:
             return []
-        # if hasattr(self, 'items'):
-        #     print('dd')
-        # else:
-        #     triggers = view.settings().get("auto_complete_triggers")
-        #     print(triggers)
-        #     view.settings().set("auto_complete_triggers", [{"selector": "source.css", "characters": ":"}])
-        # sublime.set_timeout(lambda: view.settings().set("auto_complete_triggers", word_separators), 0)
-        # view.settings().set( "auto_complete_triggers", [{"selector": "source.css meta.property-name.css", "characters": ":"}] )
-
-        # word_separators = view.settings().get("word_separators")
-        # view.settings().set("word_separators", "")
-        # sublime.set_timeout(lambda: view.settings().set("word_separators", word_separators), 0)
 
         parts = match.group(len(match.groups())).split(' ')
         string = parts[-1]
@@ -164,7 +127,6 @@ class TailwindCompletions(sublime_plugin.EventListener):
         if keys is None:
             return items
         else:
-            # return [("%s" % class_name, class_name) for class_name in list(self.safeget(self.class_names, keys))]
             return self.get_items_from_class_names(self.safeget(class_names, keys), screens, keys)
 
     def safeget(self, dct, keys):
