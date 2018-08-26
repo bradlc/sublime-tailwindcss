@@ -8,49 +8,37 @@ import re
 class TailwindCompletions(sublime_plugin.EventListener):
     activated = False
 
-    def get_config_path(self, folder):
-        path = os.path.join(folder, "tailwind.js")
-        if os.path.isfile(path):
-            return path
-
-        path = os.path.join(folder, "tailwind.config.js")
-        if os.path.isfile(path):
-            return path
-
-        path = os.path.join(folder, "tailwind-config.js")
-        if os.path.isfile(path):
-            return path
-
-        path = os.path.join(folder, ".tailwindrc.js")
-        if os.path.isfile(path):
-            return path
-
-        return None
-
     def get_completions(self):
         folders = sublime.active_window().folders()
-        for folder in folders:
-            tw = self.get_config_path(folder)
-            tw_plugin = os.path.join(folder, "node_modules", "tailwindcss")
 
-            if tw is not None and os.path.exists(tw_plugin):
-                try:
-                    packages = sublime.packages_path()
-                    script = os.path.join(packages, 'sublime-tailwindcss', 'dist', 'bundle.js')
-                    process = subprocess.Popen(['node', script, '-config', tw, '-plugin', tw_plugin], stdout=subprocess.PIPE)
-                    output = process.communicate()[0]
-                    path = output.decode('utf-8').splitlines()[0]
-                    class_names = json.loads(path)
-                    self.separator = class_names.get('separator')
-                    self.class_names = class_names.get('classNames')
-                    self.screens = class_names.get('screens')
-                    self.items = self.get_items_from_class_names(self.class_names)
-                    return self.items
-                except FileNotFoundError:
-                    self.activated = False
-                except IndexError:
-                    return []
-                break
+        if len(folders) == 0:
+            self.activated = False
+            return
+
+        tw = self.find_file(
+            folders[0],
+            ['tailwind.js', 'tailwind.config.js', 'tailwind-config.js', '.tailwindrc.js'],
+            exclude_dirs = ['node_modules']
+        )
+        tw_plugin = self.find_node_module(folders[0], 'tailwindcss')
+
+        if tw is not None and tw_plugin is not None:
+            try:
+                packages = sublime.packages_path()
+                script = os.path.join(packages, 'sublime-tailwindcss', 'dist', 'bundle.js')
+                process = subprocess.Popen(['node', script, '-config', tw, '-plugin', tw_plugin], stdout=subprocess.PIPE)
+                output = process.communicate()[0]
+                path = output.decode('utf-8').splitlines()[0]
+                class_names = json.loads(path)
+                self.separator = class_names.get('separator')
+                self.class_names = class_names.get('classNames')
+                self.screens = class_names.get('screens')
+                self.items = self.get_items_from_class_names(self.class_names)
+                return self.items
+            except FileNotFoundError:
+                self.activated = False
+            except IndexError:
+                return []
 
     def get_items_from_class_names(self, class_names, keys = []):
         if class_names is None:
@@ -167,3 +155,32 @@ class TailwindCompletions(sublime_plugin.EventListener):
             except KeyError:
                 return None
         return dct
+
+    def find_file(self, dir, names, exclude_dirs = None):
+        file = None
+        for root, dirs, files in os.walk(dir):
+            if exclude_dirs is not None:
+                dirs[:] = [d for d in dirs if d not in exclude_dirs]
+            for filename in files:
+                if filename in names:
+                    file = os.path.join(root, filename)
+                    break
+            if file is not None:
+                break
+        return file
+
+    def find_node_module(self, dir, name):
+        module = None
+        for root, dirs, files in os.walk(dir):
+            if 'node_modules' not in root or name not in root:
+                continue
+            for filename in files:
+                if filename != 'package.json':
+                    continue
+                basename = os.path.split(os.path.join(root, filename))[0]
+                if basename.endswith(os.path.join('node_modules', name)):
+                    module = basename
+                    break
+            if module is not None:
+                break
+        return module
