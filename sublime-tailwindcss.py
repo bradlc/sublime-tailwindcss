@@ -117,8 +117,8 @@ class TailwindCompletions(sublime_plugin.EventListener):
         if not hasattr(self, 'items'):
             return []
 
-        isCss = view.match_selector(locations[0], "source.css meta.property-list.css")
-        isHtml = view.match_selector(locations[0], "text.html string.quoted")
+        isCss = view.match_selector(locations[0], 'source.css meta.property-list.css')
+        isHtml = view.match_selector(locations[0], 'text.html string.quoted') or view.match_selector(locations[0], 'string.quoted.jsx')
 
         if isCss == False and isHtml == False:
             return []
@@ -131,7 +131,7 @@ class TailwindCompletions(sublime_plugin.EventListener):
         if isCss:
             match = re.match('.*?@apply ([^;}]*)$', line, re.DOTALL | re.IGNORECASE)
         elif isHtml:
-            match = re.search('\\bclass=["\']([^"\']*)$', line, re.IGNORECASE)
+            match = re.search('\\bclass(Name)?=["\']([^"\']*)$', line, re.IGNORECASE)
 
         if match is None:
             return []
@@ -148,7 +148,7 @@ class TailwindCompletions(sublime_plugin.EventListener):
         # view.settings().set("word_separators", "")
         # sublime.set_timeout(lambda: view.settings().set("word_separators", word_separators), 0)
 
-        parts = match.group(1).split(' ')
+        parts = match.group(len(match.groups())).split(' ')
         string = parts[-1]
         if string.startswith('.'):
             string = string[1:]
