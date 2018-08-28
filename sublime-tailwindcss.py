@@ -8,7 +8,7 @@ import re
 class TailwindCompletions(sublime_plugin.EventListener):
     instances = {}
 
-    def get_completions(self, folder):
+    def get_completions(self, view, folder):
         self.instances[folder] = {}
 
         tw = self.find_file(
@@ -22,7 +22,7 @@ class TailwindCompletions(sublime_plugin.EventListener):
             try:
                 packages = sublime.packages_path()
                 script = os.path.join(packages, 'sublime-tailwindcss', 'dist', 'bundle.js')
-                process = subprocess.Popen(['node', script, '-config', tw, '-plugin', tw_plugin], stdout=subprocess.PIPE)
+                process = subprocess.Popen([view.settings().get('node_path', 'node'), script, '-config', tw, '-plugin', tw_plugin], stdout=subprocess.PIPE)
                 output = process.communicate()[0]
                 path = output.decode('utf-8').splitlines()[0]
                 class_names = json.loads(path)
@@ -98,7 +98,7 @@ class TailwindCompletions(sublime_plugin.EventListener):
                 if folder in self.instances:
                     break
                 else:
-                    self.get_completions(folder)
+                    self.get_completions(view, folder)
                     break
 
     def on_query_completions(self, view, prefix, locations):
