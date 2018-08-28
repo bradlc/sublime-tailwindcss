@@ -31,6 +31,7 @@ class TailwindCompletions(sublime_plugin.EventListener):
                 path = output.decode('utf-8').splitlines()[-1]
                 class_names = json.loads(path)
 
+                self.instances[folder]['config_file'] = tw
                 self.instances[folder]['separator'] = class_names.get('separator')
                 self.instances[folder]['class_names'] = class_names.get('classNames')
                 self.instances[folder]['screens'] = class_names.get('screens')
@@ -94,16 +95,22 @@ class TailwindCompletions(sublime_plugin.EventListener):
         else:
             return None
 
-    def on_activated_async(self, view):
+    def on_activated_async(self, view, force = False):
         if view.window() is None:
             return
         for folder in view.window().folders():
             if view.file_name() is not None and view.file_name().startswith(os.path.abspath(folder) + os.sep):
-                if folder in self.instances:
+                if force == False and folder in self.instances:
                     break
                 else:
                     self.get_completions(view, folder)
                     break
+
+    def on_post_save_async(self, view):
+        for folder in self.instances:
+            if view.file_name() == self.instances[folder]['config_file']:
+                self.on_activated_async(view, force = True)
+                break
 
     def on_query_completions(self, view, prefix, locations):
         items = None
