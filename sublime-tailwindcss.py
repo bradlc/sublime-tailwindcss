@@ -22,7 +22,11 @@ class TailwindCompletions(sublime_plugin.EventListener):
             try:
                 packages = sublime.packages_path()
                 script = os.path.join(packages, 'sublime-tailwindcss', 'dist', 'bundle.js')
-                process = subprocess.Popen([view.settings().get('node_path', 'node'), script, '-config', tw, '-plugin', tw_plugin], stdout=subprocess.PIPE)
+                process = subprocess.Popen(
+                    [view.settings().get('node_path', 'node'), script, '-config', tw, '-plugin', tw_plugin],
+                    stdout = subprocess.PIPE,
+                    shell = sublime.platform() == 'windows'
+                )
                 output = process.communicate()[0]
                 path = output.decode('utf-8').splitlines()[-1]
                 class_names = json.loads(path)
