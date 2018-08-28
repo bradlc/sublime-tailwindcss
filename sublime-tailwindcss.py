@@ -31,6 +31,8 @@ class TailwindCompletions(sublime_plugin.EventListener):
                 self.instances[folder]['class_names'] = class_names.get('classNames')
                 self.instances[folder]['screens'] = class_names.get('screens')
                 self.instances[folder]['items'] = self.get_items_from_class_names(class_names.get('classNames'), class_names.get('screens'))
+                self.instances[folder]['config'] = class_names.get('config')
+                self.instances[folder]['config_items'] = self.get_config_items(class_names.get('config'))
             except (FileNotFoundError, IndexError):
                 pass
 
@@ -49,6 +51,20 @@ class TailwindCompletions(sublime_plugin.EventListener):
                 items = items + [('%s: \t@media (min-width: %s)' % (class_name, screens.get(class_name)), class_name + ':')]
             else:
                 items = items + [('%s:' % class_name, class_name + ':')]
+        return items
+
+    def get_config_items(self, config):
+        items = []
+        exclude = ['modules', 'options', 'plugins']
+        for key in list(config):
+            value = config.get(key)
+            if isinstance(value, str):
+                items = items + [('%s \t%s' % (key, value), key)]
+            elif isinstance(value, list) and key not in exclude:
+                items = items + [('%s \t%s' % (key, ', '.join(value)), key)]
+            elif key not in exclude:
+                items = items + [(key, key + '.')]
+
         return items
 
     # there’s a default snippet in sublime that prints a semi-colon when
@@ -93,6 +109,8 @@ class TailwindCompletions(sublime_plugin.EventListener):
         for folder in self.instances:
             if view.file_name() is not None and view.file_name().startswith(os.path.abspath(folder) + os.sep):
                 items = self.instances[folder]['items']
+                config_items = self.instances[folder]['config_items']
+                config = self.instances[folder]['config']
                 class_names = self.instances[folder]['class_names']
                 screens = self.instances[folder]['screens']
                 break
@@ -115,19 +133,31 @@ class TailwindCompletions(sublime_plugin.EventListener):
         elif isHtml:
             match = re.search('\\bclass(Name)?=["\']([^"\']*)$', line, re.IGNORECASE)
 
-        if match is None:
-            return []
+        if match is not None:
+            parts = match.group(len(match.groups())).split(' ')
+            string = parts[-1]
+            if string.startswith('.'):
+                string = string[1:]
+            keys = re.findall('(.*?):', string)
 
-        parts = match.group(len(match.groups())).split(' ')
-        string = parts[-1]
-        if string.startswith('.'):
-            string = string[1:]
-        keys = re.findall('(.*?):', string)
-
-        if keys is None:
-            return items
+            if keys is None:
+                return items
+            else:
+                return self.get_items_from_class_names(self.safeget(class_names, keys), screens, keys)
+        elif isCss:
+            match = re.search('config\(["\']([^\'"]*)$', line, re.IGNORECASE)
+            if match is None:
+                return []
+            keys = match.group(1).split('.')
+            if len(keys) == 1:
+                return config_items
+            else:
+                subset = self.safeget(config, keys[:-1])
+                if subset is None or not isinstance(subset, dict):
+                    return []
+                return self.get_config_items(subset)
         else:
-            return self.get_items_from_class_names(self.safeget(class_names, keys), screens, keys)
+            return []
 
     def safeget(self, dct, keys):
         for key in keys:

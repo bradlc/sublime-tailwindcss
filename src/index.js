@@ -13,6 +13,11 @@ tailwindClassNames({
   strings: true
 }).then(({ classNames }) => {
   console.log(
-    JSON.stringify({ classNames, separator, screens: config.screens || {} })
+    JSON.stringify({
+      classNames,
+      separator,
+      screens: config.screens || {},
+      config
+    })
   )
 })
