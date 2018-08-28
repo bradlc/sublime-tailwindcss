@@ -75,13 +75,13 @@ class TailwindCompletions(sublime_plugin.EventListener):
             return None
 
     def on_activated_async(self, view):
+        if view.window() is None:
+            return
         for folder in view.window().folders():
             if view.file_name() is not None and view.file_name().startswith(os.path.abspath(folder) + os.sep):
                 if folder in self.instances:
-                    print('already got for this folder')
                     break
                 else:
-                    print('getting')
                     self.get_completions(folder)
                     break
 
