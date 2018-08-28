@@ -24,7 +24,7 @@ class TailwindCompletions(sublime_plugin.EventListener):
                 script = os.path.join(packages, 'sublime-tailwindcss', 'dist', 'bundle.js')
                 process = subprocess.Popen([view.settings().get('node_path', 'node'), script, '-config', tw, '-plugin', tw_plugin], stdout=subprocess.PIPE)
                 output = process.communicate()[0]
-                path = output.decode('utf-8').splitlines()[0]
+                path = output.decode('utf-8').splitlines()[-1]
                 class_names = json.loads(path)
 
                 self.instances[folder]['separator'] = class_names.get('separator')
