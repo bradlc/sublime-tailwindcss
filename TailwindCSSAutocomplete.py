@@ -5,7 +5,7 @@ import subprocess
 import json
 import re
 
-class TailwindCompletions(sublime_plugin.EventListener):
+class TailwindCSSAutocomplete(sublime_plugin.EventListener):
     instances = {}
 
     def get_completions(self, view, folder):
@@ -21,7 +21,7 @@ class TailwindCompletions(sublime_plugin.EventListener):
         if tw is not None and tw_plugin is not None:
             try:
                 packages = sublime.packages_path()
-                script = os.path.join(packages, 'sublime-tailwindcss', 'dist', 'bundle.js')
+                script = os.path.join(packages, 'TailwindCSSAutocomplete', 'dist', 'bundle.js')
                 process = subprocess.Popen(
                     [view.settings().get('node_path', 'node'), script, '-config', tw, '-plugin', tw_plugin],
                     stdout = subprocess.PIPE,
@@ -72,7 +72,7 @@ class TailwindCompletions(sublime_plugin.EventListener):
 
         return items
 
-    # there’s a default snippet in sublime that prints a semi-colon when
+    # there's a default snippet in sublime that prints a semi-colon when
     # you type a colon within a CSS rule. e.g. "color:_" -> "color:_;"
     # we override this if we are inside an @apply
     def on_text_command(self, view, command_name, args):
