@@ -1,8 +1,8 @@
 const tailwindClassNames = require('tailwind-class-names').default
 
-const configPath = process.argv[process.argv.indexOf('-config') + 1]
+const configPath = sublime.config
 const config = __non_webpack_require__(configPath)
-const pluginPath = process.argv[process.argv.indexOf('-plugin') + 1]
+const pluginPath = sublime.plugin
 const separator = (config.options && config.options.separator) || ':'
 
 tailwindClassNames({
