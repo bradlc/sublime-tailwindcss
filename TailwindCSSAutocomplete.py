@@ -134,7 +134,8 @@ class TailwindCSSAutocomplete(sublime_plugin.EventListener):
             return []
 
         isCss = view.match_selector(locations[0], 'source.css meta.property-list.css')
-        isHtml = view.match_selector(locations[0], 'text.html string.quoted') or view.match_selector(locations[0], 'string.quoted.jsx')
+        isHtml = view.match_selector(locations[0], 'text.html string.quoted') or view.match_selector(locations[0], 'string.quoted.jsx') \
+            or view.match_selector(locations[0], 'meta.tag string.quoted')
 
         if isCss == False and isHtml == False:
             return []
