@@ -43,6 +43,7 @@ class TailwindCSSAutocomplete(sublime_plugin.EventListener):
                 process.kill()
                 process.communicate()
             except:
+                print('TailwindCSSAutocomplete: ', sys.exc_info())
                 pass
 
     def get_items_from_class_names(self, class_names, screens, keys = []):
