@@ -9,7 +9,6 @@ class TailwindCSSAutocomplete(sublime_plugin.EventListener):
     instances = {}
 
     def get_completions(self, view, folder):
-        self.instances[folder] = {}
 
         tw = self.find_file(
             folder,
@@ -32,6 +31,7 @@ class TailwindCSSAutocomplete(sublime_plugin.EventListener):
                 path = output.decode('utf-8').splitlines()[-1]
                 class_names = json.loads(path)
 
+                self.instances[folder] = {}
                 self.instances[folder]['config_file'] = tw
                 self.instances[folder]['separator'] = class_names.get('separator')
                 self.instances[folder]['class_names'] = class_names.get('classNames')
