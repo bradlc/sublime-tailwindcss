@@ -146,7 +146,7 @@ class TailwindCSSAutocomplete(sublime_plugin.EventListener):
         if isCss:
             match = re.match('.*?@apply ([^;}]*)$', line, re.DOTALL | re.IGNORECASE)
         elif isHtml:
-            match = re.search('\\bclass(Name)?=["\']([^"\']*)$', line, re.IGNORECASE)
+            match = re.search('\\bclass(Name)?={*[`"\']([^"\']*)$', line, re.IGNORECASE)
 
         if match is not None:
             parts = match.group(len(match.groups())).split(' ')
