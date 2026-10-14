@@ -20,7 +20,8 @@ class TailwindCSSAutocomplete(sublime_plugin.EventListener):
 
         if tw is not None and tw_plugin is not None:
             try:
-                script = 'var sublime={config:"' + tw + '",plugin:"' + tw_plugin + '"};'
+                # json.dumps escapes backslashes, so Windows paths survive as JS strings
+                script = 'var sublime={config:' + json.dumps(tw) + ',plugin:' + json.dumps(tw_plugin) + '};'
                 script += sublime.load_resource('Packages/TailwindCSSAutocomplete/dist/bundle.js') + '\n'
                 process = subprocess.Popen(
                     [view.settings().get('node_path', 'node')],
