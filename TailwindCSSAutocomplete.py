@@ -39,7 +39,7 @@ class TailwindCSSAutocomplete(sublime_plugin.EventListener):
                 self.instances[folder]['items'] = self.get_items_from_class_names(class_names.get('classNames'), class_names.get('screens'))
                 self.instances[folder]['config'] = class_names.get('config')
                 self.instances[folder]['config_items'] = self.get_config_items(class_names.get('config'))
-            except TimeoutExpired:
+            except subprocess.TimeoutExpired:
                 process.kill()
                 process.communicate()
             except:
